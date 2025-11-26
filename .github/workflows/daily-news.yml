@@ -2,10 +2,10 @@ name: Daily Europe News Telegram
 
 on:
   schedule:
-    # GitHub-Zeit ist UTC.
-    # 0 9 * * * = 09:00 UTC → 09:00 Lissabon im Winter, 10:00 im Sommer.
+    # GitHub-Zeit = UTC
+    # 0 9 * * * -> 09:00 UTC (= 09:00/10:00 Lissabon je nach Sommerzeit)
     - cron: "0 9 * * *"
-  workflow_dispatch: {}  # manuelles Testen
+  workflow_dispatch: {}
 
 jobs:
   send-daily-news:
@@ -15,6 +15,7 @@ jobs:
       NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      CHAT_API_KEY: ${{ secrets.CHAT_API_KEY }}
 
     steps:
       - name: Check out repository
