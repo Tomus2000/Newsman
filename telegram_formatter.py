@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import Dict, List, Optional
-from html import escape  # wichtig: HTML-Sonderzeichen escapen
 
 
 def build_telegram_message(
@@ -10,76 +9,57 @@ def build_telegram_message(
 ) -> str:
     """
     Build a Telegram message from news articles.
-    Uses HTML formatting for Telegram.
-
-    Args:
-        articles: List of article dictionaries with title, description, url
-        fallback_overview: Optional overview text to use if no articles available
-
-    Returns:
-        Formatted Telegram message (HTML)
+    Plain text only (no HTML), so Telegram can't choke on formatting.
     """
     today = datetime.now().strftime("%Y-%m-%d")
 
-    # Kein Artikel → Fallback
+    lines: List[str] = []
+    lines.append(f"📰 Daily Europe News – {today}")
+    lines.append("")
+
     if not articles:
         if fallback_overview:
-            safe_overview = escape(fallback_overview)
-            return (
-                f"📰 <b>Daily Europe News – {today}</b>\n\n"
-                f"<i>News API unavailable. Here's an AI-generated overview:</i>\n\n"
-                f"{safe_overview}"
-            )
+            lines.append("News API unavailable. Here's an AI-generated overview:")
+            lines.append("")
+            lines.append(fallback_overview)
         else:
-            return (
-                f"📰 <b>Daily Europe News – {today}</b>\n\n"
+            lines.append(
                 "No news articles were available today. Please check back tomorrow."
             )
 
-    message_parts: List[str] = [
-        f"📰 <b>Daily Europe News – {today}</b>",
-        "",
-        f"Here are the top {len(articles)} European news stories:",
-        "",
-    ]
+        msg = "\n".join(lines)
+        return msg[:4000] + "\n\n... (message truncated)" if len(msg) > 4000 else msg
+
+    lines.append(f"Here are the top {len(articles)} European news stories:")
+    lines.append("")
 
     for i, article in enumerate(articles, 1):
-        raw_title = article.get("title", "No title") or "No title"
-        raw_url = article.get("url", "") or ""
-        raw_description = article.get("description", "") or ""
+        title = (article.get("title") or "No title").strip()
+        url = (article.get("url") or "").strip()
+        desc = (article.get("description") or "").strip()
 
-        # Titel & Beschreibung HTML-sicher machen
-        title = escape(raw_title)
-        if raw_description:
-            short_desc = (
-                raw_description[:200] + "..."
-                if len(raw_description) > 200
-                else raw_description
-            )
-            desc = escape(short_desc)
-        else:
-            desc = ""
+        if len(desc) > 200:
+            desc = desc[:200] + "..."
 
-        # URL in href-Attribut escapen (inkl. Anführungszeichen)
-        if raw_url:
-            safe_url = escape(raw_url, quote=True)
-            article_line = f'{i}. <a href="{safe_url}">{title}</a>'
-        else:
-            article_line = f"{i}. <b>{title}</b>"
+        # Titel
+        lines.append(f"{i}. {title}")
 
-        message_parts.append(article_line)
-
+        # Kurzbeschreibung
         if desc:
-            message_parts.append(f"   <i>{desc}</i>")
+            lines.append(f"   {desc}")
 
-        message_parts.append("")  # Leerzeile zwischen Artikeln
+        # Link
+        if url:
+            lines.append(f"   {url}")
 
-    # Telegram hat 4096 Zeichen Limit
-    message = "\n".join(message_parts)
-    if len(message) > 4000:
-        message = message[:4000] + "\n\n... (message truncated)"
+        lines.append("")  # Leerzeile zwischen Artikeln
 
-    return message
+    msg = "\n".join(lines)
+    if len(msg) > 4000:
+        msg = msg[:4000] + "\n\n... (message truncated)"
+
+    return msg
+
 
 
 
