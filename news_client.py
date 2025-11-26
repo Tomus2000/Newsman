@@ -1,3 +1,15 @@
+"""News client for fetching European news from World News API."""
+
+import logging
+from typing import Dict, List
+
+import requests
+
+from config import NEWS_API_BASE_URL, NEWS_API_KEY
+
+logger = logging.getLogger(__name__)
+
+
 def fetch_top_europe_news(limit: int = 10) -> List[Dict]:
     """
     Fetch top European news articles from World News API.
