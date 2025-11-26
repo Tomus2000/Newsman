@@ -102,3 +102,19 @@ def main() -> None:
         if chat_id is None:
             continue
         chat_name = chat.get("first_name") or chat.get("title") or "Unknown"
+
+        chat_ids.add((chat_id, chat_name))
+
+    print(f"Found {len(chat_ids)} chat(s):\n")
+    for cid, name in chat_ids:
+        print(f"  {cid} ({name})")
+
+    if chat_ids:
+        first_chat_id = list(chat_ids)[0][0]
+        print(f"\n{'=' * 60}")
+        print(f"Use this Chat ID: {first_chat_id}")
+        print(f"{'=' * 60}")
+
+
+if __name__ == "__main__":
+    main()
