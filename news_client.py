@@ -25,7 +25,6 @@ def fetch_top_europe_news(limit: int = 10) -> List[Dict]:
 
     params = {
         # mindestens ein Filter nötig → "*" = alles
-        "text": "*",
         "source-countries": "eu",   # nur europäische Quellen
         "language": "en",           # englische Artikel
         "number": limit,            # Anzahl der Artikel
@@ -75,3 +74,4 @@ def fetch_top_europe_news(limit: int = 10) -> List[Dict]:
         logger.error(f"Unexpected error fetching news: {e}")
 
     return []
+
