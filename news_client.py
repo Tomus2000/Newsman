@@ -1,15 +1,3 @@
-"""News client for fetching European news from World News API."""
-
-import logging
-from typing import Dict, List
-
-import requests
-
-from config import NEWS_API_BASE_URL, NEWS_API_KEY
-
-logger = logging.getLogger(__name__)
-
-
 def fetch_top_europe_news(limit: int = 10) -> List[Dict]:
     """
     Fetch top European news articles from World News API.
@@ -19,21 +7,19 @@ def fetch_top_europe_news(limit: int = 10) -> List[Dict]:
         logger.error("NEWS_API_KEY is not set")
         return []
 
+    # Basis-URL kommt aus config.py:
+    # NEWS_API_BASE_URL = "https://api.worldnewsapi.com"
     url = f"{NEWS_API_BASE_URL}/search-news"
 
     params = {
-        # required: at least one filter → '*' = alles
+        # mindestens ein Filter nötig → "*" = alles
         "text": "*",
-        # nur Europa-Quellen
-        "source-countries": "eu",
-        # nur englische Artikel (sonst wird's wild)
-        "language": "en",
-        # wie viele Artikel zurückgeben
-        "number": limit,
-        # neueste zuerst
+        "source-countries": "eu",   # nur europäische Quellen
+        "language": "en",           # englische Artikel
+        "number": limit,            # Anzahl der Artikel
         "sort": "publish-time",
         "sort-direction": "desc",
-        # Auth
+        # Auth über Query-Param
         "api-key": NEWS_API_KEY,
     }
 
@@ -45,10 +31,10 @@ def fetch_top_europe_news(limit: int = 10) -> List[Dict]:
         resp.raise_for_status()
 
         data = resp.json()
-
         articles = data.get("news", [])
         logger.info(
-            f"World News API returned {len(articles)} articles (available={data.get('available')})"
+            f"World News API returned {len(articles)} articles "
+            f"(available={data.get('available')})"
         )
 
         formatted: List[Dict] = []
@@ -63,10 +49,11 @@ def fetch_top_europe_news(limit: int = 10) -> List[Dict]:
                 }
             )
 
+        logger.info(f"Successfully fetched {len(formatted)} articles")
         return formatted
 
     except requests.exceptions.HTTPError as e:
-        # Typische Fälle: 401 (Key falsch), 429 (Rate Limit)
+        # z.B. 401 (Key falsch) oder 429 (Rate Limit)
         logger.error(
             f"HTTP error from World News API: {e} | body={resp.text[:300]}"
         )
